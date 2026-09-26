@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LAST SEEN — Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efe6cf; --card:#fbf5e6; --ink:#1c2e40; --sub:#7a6f56;
+  --accent:#1f3f63; --accent2:#c08a28; --line:#ddcda3; --danger:#9c3b2e; --good:#3c6b4a;
+  --font-display:'Fraunces',Georgia,serif; --font-body:'Inter',-apple-system,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#111823; --card:#182130; --ink:#e9e0c8; --sub:#a89b7c; --line:#2a3648; }
+}
+:root[data-theme="dark"]{ --bg:#111823; --card:#182130; --ink:#e9e0c8; --sub:#a89b7c; --line:#2a3648; }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);
+  display:flex;justify-content:center;}
+#phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);position:relative;overflow-x:hidden}
+h2,.big-choice .lbl,.brand{font-family:var(--font-display)}
+header.top{position:sticky;top:0;padding:16px 18px calc(12px + env(safe-area-inset-top,0px));
+  background:var(--ink);color:var(--bg);z-index:5;display:flex;justify-content:space-between;align-items:center;
+  background-image:radial-gradient(circle,rgba(255,255,255,.35) 1.4px,transparent 1.4px);background-size:14px 14px;background-position:0 6px}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:18px;display:flex;align-items:center;gap:6px}
+header.top .tag{font-size:11px;opacity:.75;margin-top:2px;font-style:italic}
+header.top .bell{position:relative;cursor:pointer;font-size:18px}
+header.top .dot{position:absolute;top:-3px;right:-4px;background:#fff;color:var(--accent);border-radius:50%;
+  width:15px;height:15px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.screen{display:none;padding:16px 16px 90px}
+.screen.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px 14px 4px 14px;padding:14px 16px;margin-bottom:12px;box-shadow:2px 3px 0 var(--line)}
+h2{font-size:17px;margin:2px 0 4px}
+p.desc{color:var(--sub);font-size:13px;margin:0 0 10px}
+.btn{display:block;width:100%;text-align:center;padding:13px;border-radius:12px;border:none;
+  font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.outline{background:transparent;border:1.5px solid var(--accent);color:var(--accent)}
+.btn.ghost{background:var(--line);color:var(--ink)}
+input,select,textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-size:14px;margin-bottom:10px}
+label{font-size:12px;color:var(--sub);font-weight:600;display:block;margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.big-choice{padding:20px;border-radius:4px 14px 4px 14px;border:1.5px dashed var(--sub);background:var(--card);
+  text-align:center;cursor:pointer;transition:.15s}
+.big-choice:active{transform:scale(.97)}
+.big-choice .emoji{font-size:30px}
+.big-choice .lbl{font-weight:700;margin-top:8px;font-size:13px}
+.trail{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.stop{background:var(--line);border-radius:20px;padding:6px 12px;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.stop button{border:none;background:none;color:var(--danger);cursor:pointer;font-weight:800}
+.arrow{color:var(--sub);align-self:center}
+.pill{display:inline-block;background:var(--line);border-radius:20px;padding:4px 10px;font-size:11.5px;margin:2px 4px 2px 0}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.badge.match{background:#fef3c7;color:#92400e}
+.badge.verified{background:#dcfce7;color:var(--good)}
+.badge.searching{background:#ede9fe;color:var(--accent)}
+.match-score{font-size:12px;color:var(--sub);margin-top:4px}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar > span{display:block;height:100%;background:var(--accent)}
+nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  background:var(--card);border-top:1px solid var(--line);display:flex;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+nav.tabs button{flex:1;background:none;border:none;color:var(--sub);font-size:11px;font-weight:700;
+  padding:6px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button.active{color:var(--accent)}
+nav.tabs .icon{font-size:18px}
+.back{color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;margin-bottom:8px;display:inline-block}
+.hidden-field{filter:blur(4px);user-select:none}
+.timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+.tstep{position:relative;margin-bottom:14px}
+.tstep::before{content:'';position:absolute;left:-19px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.tstep .time{font-size:11px;color:var(--sub)}
+.tstep .loc{font-weight:700;font-size:13.5px}
+.empty{color:var(--sub);font-size:13px;text-align:center;padding:20px 0}
+.section-title{font-size:12px;font-weight:800;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;margin:14px 0 6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat .num{font-size:22px;font-weight:800;color:var(--accent)}
+.stat .lbl{font-size:11px;color:var(--sub)}
+.thumb{width:100%;height:110px;border-radius:10px;object-fit:cover;margin-bottom:8px;border:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;background:#fff3;display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:13px;border:1.5px solid rgba(255,255,255,.6)}
+.notif{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.notif:last-child{border-bottom:none}
+.notif .n-icon{font-size:18px}
+.notif small{color:var(--sub)}
+.map-row{display:flex;align-items:center;gap:6px;font-size:13px;margin:4px 0}
+</style>
+</head>
+<body>
+<div id="phone">
+
+  <header class="top">
+    <div>
+      <div class="brand">📍 LAST SEEN</div>
+      <div class="tag" id="topTag">Don't just search. Retrace.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="bell" onclick="go('s-notifs')">🔔<span class="dot" id="bellCount">0</span></div>
+      <div class="avatar" id="avatarInit" onclick="go('s-profile')">?</div>
+    </div>
+  </header>
+
+  <!-- PROFILE / LOGIN -->
+  <section class="screen" id="s-profile">
+    <span class="back" onclick="go('s-home')">‹ Back</span>
+    <div class="card">
+      <h2>Your profile</h2>
+      <p class="desc">Used to tag your reports. No public contact info is ever shown.</p>
+      <label>Name</label>
+      <input id="profName" placeholder="e.g. Anuhya">
+      <label>Campus ID (private)</label>
+      <input id="profId" placeholder="e.g. 21CSE045">
+      <button class="btn primary" onclick="saveProfile()">Save profile</button>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen active" id="s-home">
+    <svg viewBox="0 0 380 120" width="100%" height="110" style="margin:-4px 0 14px" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 95 Q 90 40 170 70 T 300 40 Q 340 30 360 55" fill="none" stroke="var(--line)" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round"/>
+      <g fill="var(--accent)">
+        <circle cx="20" cy="95" r="7"/>
+        <circle cx="170" cy="70" r="7"/>
+        <circle cx="360" cy="55" r="9"/>
+      </g>
+      <path d="M355 45 q5 -14 15 -10 q9 4 3 15 q-6 10 -8 18 q-2 -8 -10 -23z" fill="var(--accent2)"/>
+      <text x="20" y="112" font-family="Fraunces,serif" font-size="12" fill="var(--sub)">Classroom</text>
+      <text x="150" y="88" font-family="Fraunces,serif" font-size="12" fill="var(--sub)">Library</text>
+      <text x="330" y="35" font-family="Fraunces,serif" font-size="12" fill="var(--ink)" font-weight="700">You are here</text>
+    </svg>
+    <div class="section-title">What happened?</div>
+    <div class="grid2">
+      <div class="big-choice" onclick="go('s-lost')">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6"><circle cx="10" cy="10" r="6"/><path d="M20 20l-4.35-4.35" stroke-linecap="round"/></svg>
+        <div class="lbl">I lost something</div>
+      </div>
+      <div class="big-choice" onclick="go('s-found')">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="1.6"><path d="M9 21c0-3 1.8-5 3-6.5C13.2 16 15 18 15 21" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12l8-8 8 8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v6a2 2 0 002 2h8a2 2 0 002-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="lbl">I found something</div>
+      </div>
+    </div>
+
+    <div class="section-title">Active alerts</div>
+    <div id="homeAlerts"></div>
+
+    <div class="section-title">Your recent reports</div>
+    <div id="homeReports"></div>
+  </section>
+
+  <!-- REPORT LOST -->
+  <section class="screen" id="s-lost">
+    <span class="back" onclick="go('s-home')">‹ Back</span>
+    <div class="card">
+      <h2>Report a lost item</h2>
+      <p class="desc">Describe it, then build your Memory Trail.</p>
+      <label>Item name</label>
+      <input id="lostName" placeholder="e.g. Black ID Card">
+      <label>Category</label>
+      <select id="lostCat">
+        <option>ID card</option><option>Earbuds</option><option>Keys</option>
+        <option>Book/Notebook</option><option>Charger</option><option>Bag</option><option>Other</option>
+      </select>
+      <label>Description</label>
+      <textarea id="lostDesc" rows="2" placeholder="Color, brand, distinguishing marks..."></textarea>
+    </div>
+
+    <div class="card">
+      <h2>🧭 Memory Trail</h2>
+      <p class="desc">Add each place you remember having it, in order.</p>
+      <div class="grid2">
+        <input id="stopLoc" placeholder="Location (e.g. Library)">
+        <input id="stopTime" type="time">
+      </div>
+      <button class="btn outline" onclick="addStop()">+ Add stop to trail</button>
+      <div class="trail" id="trailPreview"></div>
+    </div>
+    <button class="btn primary" onclick="submitLost()">Build Trail &amp; Submit Report</button>
+  </section>
+
+  <!-- REPORT FOUND -->
+  <section class="screen" id="s-found">
+    <span class="back" onclick="go('s-home')">‹ Back</span>
+    <div class="card">
+      <h2>Report a found item</h2>
+      <p class="desc">Help someone retrace their day.</p>
+      <label>Item name</label>
+      <input id="foundName" placeholder="e.g. Black ID Card">
+      <label>Category</label>
+      <select id="foundCat">
+        <option>ID card</option><option>Earbuds</option><option>Keys</option>
+        <option>Book/Notebook</option><option>Charger</option><option>Bag</option><option>Other</option>
+      </select>
+      <label>Where found</label>
+      <input id="foundLoc" placeholder="e.g. Library entrance">
+      <label>Time found</label>
+      <input id="foundTime" type="time">
+      <label>Photo (optional)</label>
+      <input id="foundPhoto" type="file" accept="image/*">
+      <label>Description</label>
+      <textarea id="foundDesc" rows="2" placeholder="What it looks like..."></textarea>
+    </div>
+    <button class="btn primary" onclick="submitFound()">Report Found Item</button>
+  </section>
+
+  <!-- DASHBOARD / SEARCH GUIDANCE -->
+  <section class="screen" id="s-dash">
+    <h2>🧭 Smart Search Dashboard</h2>
+    <p class="desc">Know where to search first.</p>
+    <div id="dashList"></div>
+  </section>
+
+  <!-- MATCHES -->
+  <section class="screen" id="s-matches">
+    <h2>🤖 Possible Matches</h2>
+    <p class="desc">Matched by location, time window, category &amp; description.</p>
+    <div id="matchList"></div>
+  </section>
+
+  <!-- NOTIFICATIONS -->
+  <section class="screen" id="s-notifs">
+    <span class="back" onclick="go('s-home')">‹ Back</span>
+    <h2>Notifications</h2>
+    <div class="card" id="notifList"></div>
+  </section>
+
+  <!-- MATCH DETAIL / VERIFY -->
+  <section class="screen" id="s-verify">
+    <span class="back" onclick="go('s-matches')">‹ Back to matches</span>
+    <div id="verifyBody"></div>
+  </section>
+
+  <!-- ADMIN / IMPACT -->
+  <section class="screen" id="s-admin">
+    <h2>📊 Impact & Scalability</h2>
+    <p class="desc">Start with one campus. Scale the network.</p>
+    <div class="grid3" id="statGrid"></div>
+    <div class="section-title">Recovery status</div>
+    <div class="card" id="statusList"></div>
+    <div class="section-title">Where next</div>
+    <div class="card">
+      <span class="pill">Universities</span><span class="pill">Hospitals</span>
+      <span class="pill">Events</span><span class="pill">Organizations</span>
+      <p class="desc" style="margin-top:8px">One campus → multiple campuses → large organizations.</p>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="active" onclick="go('s-home')"><span class="icon">🏠</span>Home</button>
+    <button onclick="go('s-dash')"><span class="icon">🗺️</span>Trail</button>
+    <button onclick="go('s-matches')"><span class="icon">🤖</span>Matches</button>
+    <button onclick="go('s-admin')"><span class="icon">📊</span>Impact</button>
+  </nav>
+</div>
+
+<script>
+let lostReports = [];
+let foundReports = [];
+let currentTrail = [];
+let notifications = [];
+let idSeq = 1;
+let profile = {name:'', id:''};
+
+function save(){
+  try{
+    localStorage.setItem('ls_data', JSON.stringify({lostReports, foundReports, notifications, idSeq, profile}));
+  }catch(e){}
+}
+function load(){
+  try{
+    const raw = localStorage.getItem('ls_data');
+    if(raw){
+      const d = JSON.parse(raw);
+      lostReports = d.lostReports||[]; foundReports = d.foundReports||[];
+      notifications = d.notifications||[]; idSeq = d.idSeq||1; profile = d.profile||{name:'',id:''};
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+function seedDemo(){
+  lostReports.push({id:idSeq++, name:'Black ID Card', cat:'ID card', desc:'Student ID, black case',
+    trail:[{loc:'Classroom',time:'09:00'},{loc:'Library',time:'11:30'},{loc:'Canteen',time:'13:00'}],
+    status:'searching', photo:null});
+  foundReports.push({id:idSeq++, name:'Black ID Card', cat:'ID card', desc:'Black card near entrance',
+    loc:'Library Entrance', time:'11:45', verified:false, photo:null});
+  notifications.push({id:idSeq++, text:'Possible match found for Black ID Card near Library Entrance', time:'Just now', icon:'🔔'});
+}
+if(!load()){ seedDemo(); save(); }
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+  const map={'s-home':0,'s-dash':1,'s-matches':2,'s-admin':3};
+  if(map[id]!==undefined) document.querySelectorAll('nav.tabs button')[map[id]].classList.add('active');
+  renderAll();
+}
+
+function saveProfile(){
+  profile.name = document.getElementById('profName').value.trim() || profile.name;
+  profile.id = document.getElementById('profId').value.trim() || profile.id;
+  save(); go('s-home');
+}
+
+function addStop(){
+  const loc=document.getElementById('stopLoc').value.trim();
+  const time=document.getElementById('stopTime').value || '--:--';
+  if(!loc) return;
+  currentTrail.push({loc,time});
+  document.getElementById('stopLoc').value='';
+  document.getElementById('stopTime').value='';
+  renderTrailPreview();
+}
+function renderTrailPreview(){
+  const el=document.getElementById('trailPreview');
+  el.innerHTML = currentTrail.map((s,i)=>
+    `<span class="stop">📍 ${s.loc} <small style="color:var(--sub)">${s.time}</small> <button onclick="removeStop(${i})">×</button></span>` +
+    (i<currentTrail.length-1?'<span class="arrow">→</span>':'')
+  ).join('');
+}
+function removeStop(i){ currentTrail.splice(i,1); renderTrailPreview(); }
+
+function submitLost(){
+  const name=document.getElementById('lostName').value.trim() || 'Unnamed item';
+  const cat=document.getElementById('lostCat').value;
+  const desc=document.getElementById('lostDesc').value.trim();
+  if(currentTrail.length===0){ alert('Add at least one stop to your Memory Trail.'); return; }
+  lostReports.push({id:idSeq++, name, cat, desc, trail:[...currentTrail], status:'searching', photo:null});
+  currentTrail=[];
+  document.getElementById('trailPreview').innerHTML='';
+  document.getElementById('lostName').value='';
+  document.getElementById('lostDesc').value='';
+  save();
+  go('s-dash');
+}
+
+function submitFound(){
+  const name=document.getElementById('foundName').value.trim() || 'Unnamed item';
+  const cat=document.getElementById('foundCat').value;
+  const loc=document.getElementById('foundLoc').value.trim() || 'Unknown';
+  const time=document.getElementById('foundTime').value || '--:--';
+  const desc=document.getElementById('foundDesc').value.trim();
+  const fileInput=document.getElementById('foundPhoto');
+  const finish=(photoData)=>{
+    foundReports.push({id:idSeq++, name, cat, loc, time, desc, verified:false, photo:photoData});
+    document.getElementById('foundName').value='';
+    document.getElementById('foundLoc').value='';
+    document.getElementById('foundDesc').value='';
+    save();
+    go('s-matches');
+  };
+  if(fileInput.files && fileInput.files[0]){
+    const reader = new FileReader();
+    reader.onload = e => finish(e.target.result);
+    reader.readAsDataURL(fileInput.files[0]);
+  } else { finish(null); }
+}
+
+function timeToMin(t){ if(!t||t==='--:--')return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+function computeMatches(){
+  const results=[];
+  lostReports.forEach(l=>{
+    if(l.status==='recovered') return;
+    foundReports.forEach(f=>{
+      let score=0, reasons=[];
+      if(l.cat.toLowerCase()===f.cat.toLowerCase()){ score+=40; reasons.push('same category'); }
+      const trailLocs=l.trail.map(s=>s.loc.toLowerCase());
+      if(trailLocs.some(loc=>f.loc.toLowerCase().includes(loc)||loc.includes(f.loc.toLowerCase()))){
+        score+=35; reasons.push('location on trail');
+      }
+      const lastStop=l.trail[l.trail.length-1];
+      const lt=timeToMin(lastStop?.time), ft=timeToMin(f.time);
+      if(lt!=null && ft!=null && Math.abs(lt-ft)<=90){ score+=20; reasons.push('nearby time window'); }
+      const words=(l.name+' '+l.desc).toLowerCase().split(/\W+/).filter(Boolean);
+      if(words.some(w=>w.length>2 && (f.name.toLowerCase().includes(w)||f.desc.toLowerCase().includes(w)))){
+        score+=15; reasons.push('similar description');
+      }
+      if(f.photo) reasons.push('photo available');
+      if(score>=45){ results.push({lost:l, found:f, score:Math.min(score,100), reasons}); }
+    });
+  });
+  return results.sort((a,b)=>b.score-a.score);
+}
+
+function renderAll(){
+  document.getElementById('avatarInit').textContent = profile.name ? profile.name[0].toUpperCase() : '?';
+  document.getElementById('bellCount').textContent = notifications.length;
+  renderHome(); renderDash(); renderMatches(); renderNotifs(); renderAdmin();
+}
+
+function renderHome(){
+  const matches = computeMatches();
+  const alertsEl=document.getElementById('homeAlerts');
+  alertsEl.innerHTML = matches.length
+    ? matches.slice(0,2).map(m=>`<div class="card">🔔 Possible match for <b>${m.lost.name}</b> near ${m.found.loc} <span class="badge match">${m.score}% match</span></div>`).join('')
+    : `<div class="empty">No alerts yet.</div>`;
+
+  const repEl=document.getElementById('homeReports');
+  const items = lostReports.map(l=>`<div class="card"><b>🔍 ${l.name}</b> <span class="pill">${l.cat}</span>
+    <span class="badge ${l.status==='recovered'?'verified':'searching'}">${l.status}</span><br>
+    <span style="font-size:12px;color:var(--sub)">Trail: ${l.trail.map(s=>s.loc).join(' → ')}</span></div>`)
+    .concat(foundReports.map(f=>`<div class="card">${f.photo?`<img class="thumb" src="${f.photo}">`:''}<b>🤝 ${f.name}</b> <span class="pill">${f.cat}</span><br><span style="font-size:12px;color:var(--sub)">Found at ${f.loc}, ${f.time}</span></div>`));
+  repEl.innerHTML = items.length ? items.join('') : `<div class="empty">Nothing reported yet.</div>`;
+}
+
+function renderDash(){
+  const el=document.getElementById('dashList');
+  const active = lostReports.filter(l=>l.status!=='recovered');
+  if(active.length===0){ el.innerHTML=`<div class="empty">No lost items to guide yet.</div>`; return; }
+  el.innerHTML = active.map(l=>{
+    const matches = computeMatches().filter(m=>m.lost.id===l.id);
+    const top = matches[0];
+    return `<div class="card">
+      <h2>${l.name} <span class="pill">${l.cat}</span></h2>
+      <div class="section-title">Search trail</div>
+      <div class="timeline">
+        ${l.trail.map(s=>`<div class="tstep"><div class="time">${s.time}</div><div class="loc">📍 ${s.loc}</div></div>`).join('')}
+      </div>
+      <div class="section-title">Map view</div>
+      ${l.trail.map((s,i)=>`<div class="map-row">📍 ${s.loc}${top && s.loc.toLowerCase()===top.found.loc.toLowerCase().split(' ')[0]?' ⭐':''}${i<l.trail.length-1?' <span style="color:var(--sub)">→</span>':''}</div>`).join('')}
+      ${top ? `<div class="section-title">Suggested area</div>
+        <p style="margin:0 0 4px"><b>📍 ${top.found.loc}</b></p>
+        <p class="desc" style="margin:0">Why? ${top.reasons.join(', ')}.</p>
+        <div class="bar"><span style="width:${top.score}%"></span></div>
+        <p class="desc">Not a guarantee — a search suggestion (${top.score}% confidence).</p>`
+        : `<p class="desc">No nearby reports yet — check locations on your trail in order.</p>`}
+    </div>`;
+  }).join('');
+}
+
+function renderMatches(){
+  const el=document.getElementById('matchList');
+  const matches = computeMatches();
+  el.innerHTML = matches.length ? matches.map((m,i)=>`
+    <div class="card">
+      ${m.found.photo?`<img class="thumb" src="${m.found.photo}">`:''}
+      <span class="badge match">${m.score}% match</span>
+      <h2 style="margin-top:6px">${m.lost.name} ↔ ${m.found.name}</h2>
+      <p class="desc">Lost near ${m.lost.trail[m.lost.trail.length-1].loc} · Found at ${m.found.loc}</p>
+      <div class="match-score">Matched on: ${m.reasons.join(', ')}</div>
+      <button class="btn primary" onclick="openVerify(${i})">Verify &amp; View Trail</button>
+    </div>`).join('')
+    : `<div class="empty">No possible matches right now. Try reporting an item!</div>`;
+  window._matches = matches;
+}
+
+function renderNotifs(){
+  const el=document.getElementById('notifList');
+  el.innerHTML = notifications.length
+    ? notifications.map(n=>`<div class="notif"><div class="n-icon">${n.icon}</div><div><div>${n.text}</div><small>${n.time}</small></div></div>`).join('')
+    : `<div class="empty">No notifications.</div>`;
+}
+
+function renderAdmin(){
+  const recovered = lostReports.filter(l=>l.status==='recovered').length;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat"><div class="num">${lostReports.length}</div><div class="lbl">Lost</div></div>
+    <div class="stat"><div class="num">${foundReports.length}</div><div class="lbl">Found</div></div>
+    <div class="stat"><div class="num">${recovered}</div><div class="lbl">Recovered</div></div>`;
+  const sl = document.getElementById('statusList');
+  sl.innerHTML = lostReports.length ? lostReports.map(l=>
+    `<div class="map-row">${l.name} <span class="badge ${l.status==='recovered'?'verified':'searching'}" style="margin-left:auto">${l.status}</span></div>`
+  ).join('') : `<div class="empty">No records yet.</div>`;
+}
+
+function openVerify(i){
+  const m = window._matches[i];
+  const body = document.getElementById('verifyBody');
+  body.innerHTML = `
+    <div class="card">
+      <h2>Possible Match <span class="badge match">${m.score}%</span></h2>
+      <p class="desc">${m.reasons.join(' · ')}</p>
+      <div class="section-title">Lost report</div>
+      <p><b>${m.lost.name}</b> — ${m.lost.desc || 'no extra description'}<br>
+      <span style="font-size:12px;color:var(--sub)">Trail: ${m.lost.trail.map(s=>s.loc).join(' → ')}</span></p>
+      <div class="section-title">Found report</div>
+      ${m.found.photo?`<img class="thumb" src="${m.found.photo}">`:''}
+      <p><b>${m.found.name}</b> at ${m.found.loc}, ${m.found.time}<br>
+      <span style="font-size:12px;color:var(--sub)">${m.found.desc||''}</span></p>
+    </div>
+    <div class="card">
+      <h2>🔐 Privacy-aware contact</h2>
+      <p class="desc">Personal details stay hidden until both sides confirm this is a real match.</p>
+      <p class="hidden-field" id="hiddenContact">Finder: +91 XXXXX-XXXXX · Block A, Room XXX</p>
+      <button class="btn outline" onclick="reveal()">Confirm identifying detail to reveal contact</button>
+      <button class="btn primary" onclick="markVerified(${m.lost.id})" id="verifyBtn">Mark as Recovered</button>
+    </div>`;
+  go('s-verify');
+}
+function reveal(){
+  document.getElementById('hiddenContact').classList.remove('hidden-field');
+  document.getElementById('hiddenContact').textContent='Finder: +91 98765-43210 · Block A, Room 214';
+}
+function markVerified(lostId){
+  const l = lostReports.find(r=>r.id===lostId);
+  if(l) l.status='recovered';
+  notifications.unshift({id:idSeq++, text:`${l ? l.name : 'Item'} marked as recovered`, time:'Just now', icon:'✅'});
+  save();
+  document.getElementById('verifyBtn').textContent='✅ Recovered!';
+  document.getElementById('verifyBtn').classList.add('ghost');
+  document.getElementById('verifyBtn').disabled = true;
+}
+
+renderAll();
+</script>
+</body>
+</html>
